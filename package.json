@@ -41,6 +41,7 @@
   "homepage": "https://github.com/rahulretnan/mcp-ragdocs#readme",
   "dependencies": {
     "@azure/openai": "2.0.0",
+    "@google/generative-ai": "^0.21.0",
     "@modelcontextprotocol/sdk": "1.0.3",
     "@qdrant/js-client-rest": "1.12.0",
     "axios": "1.7.9",

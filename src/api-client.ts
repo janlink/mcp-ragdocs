@@ -7,6 +7,7 @@ import { EmbeddingService } from "./services/embeddings.js";
 const EMBEDDING_PROVIDER = process.env.EMBEDDING_PROVIDER || 'ollama';
 const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const FALLBACK_PROVIDER = process.env.FALLBACK_PROVIDER;
 const FALLBACK_MODEL = process.env.FALLBACK_MODEL;
 const QDRANT_URL = process.env.QDRANT_URL || 'http://localhost:6333';
@@ -21,6 +22,12 @@ if (!QDRANT_URL) {
 if ((EMBEDDING_PROVIDER === 'openai' || FALLBACK_PROVIDER === 'openai') && !OPENAI_API_KEY) {
   throw new Error(
     "OPENAI_API_KEY environment variable is required when using OpenAI as either primary or fallback provider"
+  );
+}
+
+if ((EMBEDDING_PROVIDER === 'gemini' || FALLBACK_PROVIDER === 'gemini') && !GEMINI_API_KEY) {
+  throw new Error(
+    "GEMINI_API_KEY environment variable is required when using Gemini as either primary or fallback provider"
   );
 }
 
@@ -43,11 +50,13 @@ export class ApiClient {
 
     // Initialize embedding service with configured provider
     this.embeddingService = EmbeddingService.createFromConfig({
-      provider: EMBEDDING_PROVIDER as 'ollama' | 'openai',
-      apiKey: EMBEDDING_PROVIDER === 'openai' ? OPENAI_API_KEY : undefined,
+      provider: EMBEDDING_PROVIDER as 'ollama' | 'openai' | 'gemini',
+      apiKey: EMBEDDING_PROVIDER === 'openai' ? OPENAI_API_KEY : 
+              EMBEDDING_PROVIDER === 'gemini' ? GEMINI_API_KEY : undefined,
       model: EMBEDDING_MODEL,
-      fallbackProvider: FALLBACK_PROVIDER as 'ollama' | 'openai' | undefined,
-      fallbackApiKey: FALLBACK_PROVIDER === 'openai' ? OPENAI_API_KEY : undefined,
+      fallbackProvider: FALLBACK_PROVIDER as 'ollama' | 'openai' | 'gemini' | undefined,
+      fallbackApiKey: FALLBACK_PROVIDER === 'openai' ? OPENAI_API_KEY :
+                     FALLBACK_PROVIDER === 'gemini' ? GEMINI_API_KEY : undefined,
       fallbackModel: FALLBACK_MODEL
     });
 

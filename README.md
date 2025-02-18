@@ -101,11 +101,13 @@ The system uses Ollama as the default embedding provider for local embeddings ge
 
 #### Environment Variables
 
-- `EMBEDDING_PROVIDER`: Choose the primary embedding provider ('ollama' or 'openai', default: 'ollama')
+- `EMBEDDING_PROVIDER`: Choose the primary embedding provider ('ollama', 'openai', 'gemini', default: 'ollama')
 - `EMBEDDING_MODEL`: Specify the model to use (optional)
   - For OpenAI: defaults to 'text-embedding-3-small'
   - For Ollama: defaults to 'nomic-embed-text'
+  - For Gemini: defaults to 'text-embedding-004'
 - `OPENAI_API_KEY`: Required when using OpenAI as provider
+- `GEMINI_API_KEY`: Required when using Gemini as provider
 - `FALLBACK_PROVIDER`: Optional backup provider ('ollama' or 'openai')
 - `FALLBACK_MODEL`: Optional model for fallback provider
 
@@ -123,6 +125,7 @@ Add this to your `cline_mcp_settings.json`:
         "EMBEDDING_PROVIDER": "ollama", // default
         "EMBEDDING_MODEL": "nomic-embed-text", // optional
         "OPENAI_API_KEY": "your-api-key-here", // required for fallback
+        "GEMINI_API_KEY": "your-api-key-here", // required for Gemini
         "FALLBACK_PROVIDER": "openai", // recommended for reliability
         "FALLBACK_MODEL": "nomic-embed-text", // optional
         "QDRANT_URL": "http://localhost:6333"
@@ -157,6 +160,7 @@ Add this to your `claude_desktop_config.json`:
         "EMBEDDING_PROVIDER": "ollama", // default
         "EMBEDDING_MODEL": "nomic-embed-text", // optional
         "OPENAI_API_KEY": "your-api-key-here", // required for fallback
+        "GEMINI_API_KEY": "your-api-key-here", // required for Gemini
         "FALLBACK_PROVIDER": "openai", // recommended for reliability
         "FALLBACK_MODEL": "nomic-embed-text", // optional
         "QDRANT_URL": "http://localhost:6333"
@@ -190,6 +194,7 @@ This configuration ensures:
 Note: The system will automatically use the appropriate vector dimensions based on the provider:
 - Ollama (nomic-embed-text): 768 dimensions
 - OpenAI (text-embedding-3-small): 1536 dimensions
+- Gemini (text-embedding-004): 768 dimensions
 
 ## Acknowledgments
 
