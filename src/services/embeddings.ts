@@ -1,6 +1,7 @@
 import ollama from 'ollama';
 import OpenAI from 'openai';
 import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export interface EmbeddingProvider {
   generateEmbeddings(text: string): Promise<number[]>;
@@ -72,6 +73,38 @@ export class OpenAIProvider implements EmbeddingProvider {
   }
 }
 
+export class GeminiProvider implements EmbeddingProvider {
+  private client: GoogleGenerativeAI;
+  private model: string;
+
+  constructor(apiKey: string, model: string = 'text-embedding-004') {
+    this.client = new GoogleGenerativeAI(apiKey);
+    this.model = model;
+  }
+
+  async generateEmbeddings(text: string): Promise<number[]> {
+    try {
+      console.error('Generating Gemini embeddings for text:', text.substring(0, 50) + '...');
+      const model = this.client.getGenerativeModel({ model: this.model });
+      const result = await model.embedContent(text);
+      const embedding = result.embedding.values;
+      console.error('Successfully generated Gemini embeddings with size:', embedding.length);
+      return embedding;
+    } catch (error) {
+      console.error('Gemini embedding error:', error);
+      throw new McpError(
+        ErrorCode.InternalError,
+        `Failed to generate embeddings with Gemini: ${error}`
+      );
+    }
+  }
+
+  getVectorSize(): number {
+    // text-embedding-004 produces 768-dimensional vectors
+    return 768;
+  }
+}
+
 export class EmbeddingService {
   private provider: EmbeddingProvider;
   private fallbackProvider?: EmbeddingProvider;
@@ -86,7 +119,7 @@ export class EmbeddingService {
       return await this.provider.generateEmbeddings(text);
     } catch (error) {
       if (this.fallbackProvider) {
-        console.error('Primary provider failed, trying fallback provider...');
+        console.warn('Primary provider failed, trying fallback provider...');
         return this.fallbackProvider.generateEmbeddings(text);
       }
       throw error;
@@ -98,10 +131,10 @@ export class EmbeddingService {
   }
 
   static createFromConfig(config: {
-    provider: 'ollama' | 'openai';
+    provider: 'ollama' | 'openai' | 'gemini';
     apiKey?: string;
     model?: string;
-    fallbackProvider?: 'ollama' | 'openai';
+    fallbackProvider?: 'ollama' | 'openai' | 'gemini';
     fallbackApiKey?: string;
     fallbackModel?: string;
   }): EmbeddingService {
@@ -124,7 +157,7 @@ export class EmbeddingService {
   }
 
   private static createProvider(
-    provider: 'ollama' | 'openai',
+    provider: 'ollama' | 'openai' | 'gemini',
     apiKey?: string,
     model?: string
   ): EmbeddingProvider {
@@ -139,6 +172,14 @@ export class EmbeddingService {
           );
         }
         return new OpenAIProvider(apiKey, model);
+      case 'gemini':
+        if (!apiKey) {
+          throw new McpError(
+            ErrorCode.InvalidParams,
+            'Gemini API key is required'
+          );
+        }
+        return new GeminiProvider(apiKey, model);
       default:
         throw new McpError(
           ErrorCode.InvalidParams,
